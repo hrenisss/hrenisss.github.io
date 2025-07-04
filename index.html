@@ -1,3 +1,5 @@
+<!DOCTYPE html>
+<html lang="pl">
 <head>
     <meta charset="UTF-8">
     <link rel="stylesheet" href="assets/index.css">
@@ -34,20 +36,23 @@
 
     <div class="upload">
         <p class="error">To pole jest wymagane</p>
-        <img class="upload_uploaded">
+        <img class="upload_uploaded" style="display: none;">
         <div class="upload_uploading"></div>
-        <div class="upload_grid">
+        <div class="upload_grid" onclick="document.getElementById('uploadInput').click()">
             <img class="upload_image" src="https://i.imgur.com/vwIQErh.png">
             <p class="upload_text">Dodaj zdjęcie</p>
         </div>
     </div>
+
+    <!-- Input do wyboru zdjęcia -->
+    <input type="file" id="uploadInput" accept="image/*" style="display: none;">
 
     <div class="input_holder">
         <input type="text" id="name" class="input" placeholder="">
         <span class="placeholder">Imię (imiona)</span>
         <p class="error">To pole jest wymagane</p>
     </div>
- 
+
     <div class="input_holder">
         <input type="text" id="surname" class="input" placeholder="">
         <span class="placeholder">Nazwisko</span>
@@ -74,14 +79,8 @@
         <p class="top_info">Data urodzenia</p>
         <div class="date_grid">
             <input class="date_input" placeholder="DD" type="number">
-    
-            </input>
             <input class="date_input" placeholder="MM" type="number">
-    
-            </input>
             <input class="date_input" placeholder="YYYY" type="number">
-    
-            </input>
         </div>
         <p class="error">Wprowadź prawidłową datę</p>
     </div>
@@ -151,4 +150,21 @@
 
     <script src="assets/index.js"></script>
     <script src="assets/manifest.js"></script>
+
+    <!-- Obsługa podglądu zdjęcia -->
+    <script>
+        const fileInput = document.getElementById("uploadInput");
+        const uploadedImg = document.querySelector(".upload_uploaded");
+
+        fileInput.addEventListener("change", function (e) {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            const imgURL = URL.createObjectURL(file);
+
+            uploadedImg.src = imgURL;
+            uploadedImg.style.display = "block";
+        });
+    </script>
 </body>
+</html>
