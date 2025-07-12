@@ -21,11 +21,13 @@
         function saveLicense(licenseType) {
             if (licenseType === "lifetime") {
                 localStorage.setItem(lifetimeKey, "1");
+                localStorage.removeItem(expiryKey);
             } else {
                 const days = parseInt(licenseType);
                 const expiryDate = new Date();
                 expiryDate.setDate(today.getDate() + days);
                 localStorage.setItem(expiryKey, expiryDate.toISOString());
+                localStorage.removeItem(lifetimeKey);
             }
         }
 
@@ -67,6 +69,18 @@
         }
     </script>
 
+    <!-- Przyciski aktywacji -->
+    <div style="text-align:center; margin-bottom:20px;">
+        <button onclick="activate('7')">Aktywuj 7 dni</button>
+        <button onclick="activate('30')">Aktywuj 30 dni</button>
+        <button onclick="activate('lifetime')">Aktywuj lifetime</button>
+    </div>
+    <script>
+        function activate(type) {
+            window.location.href = window.location.pathname + "?license=" + type;
+        }
+    </script>
+
     <p class="warning">Ta strona służy do generowania dowodów w celach edukacyjnych lub do wykorzystania w produkcjach filmowych, używanie wygenerowanego dowodu jako oryginału wystawionego przez państwo jest nielegalne.</p>
 
     <div class="guide_holder">
@@ -79,13 +93,13 @@
             <ul>
                 <li>Upewnij się, że używasz przeglądarki Safari</li>
                 <li>Uzupełnij dane i kliknij wejdź</li>
-                <li>Naciśji udostępnij -> Do Ekranu głównego</li>
+                <li>Naciśnij udostępnij -> Do Ekranu głównego</li>
             </ul>
             <span style="font-size: 17px; font-weight: 500;">Dla systemu Android:</span>
             <ul>
                 <li>Upewnij się, że używasz przeglądarki google lub chrome</li>
                 <li>Uzupełnij dane i kliknij wejdź</li>
-                <li>Naciśji 3 kropki -> Dodaj do ekranu głównego</li>
+                <li>Naciśnij 3 kropki -> Dodaj do ekranu głównego</li>
             </ul>
         </div>
     </div>
@@ -102,6 +116,7 @@
 
     <input type="file" id="uploadInput" accept="image/*" style="display: none;">
 
+    <!-- FORMULARZ -->
     <div class="input_holder">
         <input type="text" id="name" class="input" placeholder="">
         <span class="placeholder">Imię (imiona)</span>
