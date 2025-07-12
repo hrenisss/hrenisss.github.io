@@ -1,3 +1,54 @@
+// 🔐 SYSTEM LICENCJI
+const validLicenses = {
+  "MOY-7DAYS-123": 7,
+  "MOY-30DAYS-456": 30,
+  "MOY-LIFE-999": "lifetime"
+};
+
+function isLicenseValid() {
+  const stored = JSON.parse(localStorage.getItem("moyLicense"));
+  if (!stored) return false;
+
+  if (stored.type === "lifetime") return true;
+
+  const activation = new Date(stored.date);
+  const now = new Date();
+  const diff = Math.floor((now - activation) / (1000 * 60 * 60 * 24)); // różnica w dniach
+
+  return diff <= stored.days;
+}
+
+function submitLicense() {
+  const key = document.getElementById("licenseInput").value.trim();
+  if (!(key in validLicenses)) {
+    document.getElementById("licenseMessage").innerText = "Niepoprawny klucz licencyjny.";
+    return;
+  }
+
+  const value = validLicenses[key];
+  const licenseData = {
+    key,
+    type: value === "lifetime" ? "lifetime" : "days",
+    days: value === "lifetime" ? null : value,
+    date: new Date().toISOString()
+  };
+
+  localStorage.setItem("moyLicense", JSON.stringify(licenseData));
+  location.reload();
+}
+
+window.onload = () => {
+  if (!isLicenseValid()) {
+    document.getElementById("generatorContainer").style.display = "none";
+    document.getElementById("licenseContainer").style.display = "block";
+  } else {
+    document.getElementById("licenseContainer").style.display = "none";
+    document.getElementById("generatorContainer").style.display = "block";
+  }
+};
+
+// 📋 GENERATOR – ORYGINALNY KOD
+
 var selector = document.querySelector(".selector_box");
 selector.addEventListener('click', () => {
     selector.classList.toggle("selector_open");
