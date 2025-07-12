@@ -7,42 +7,27 @@
     <title>mObywatel</title>
     <meta name="viewport" content="width=device-width, initial-scale=0.8, user-scalable=no">
 
-    <!-- Obsługa licencji -->
     <script>
         const expiryKey = "mobywatel_expiry";
         const lifetimeKey = "mobywatel_lifetime";
-        const today = new Date();
 
-        function getLicenseTypeFromURL() {
-            const params = new URLSearchParams(window.location.search);
-            return params.get("license");
-        }
-
-        function saveLicense(licenseType) {
-            if (licenseType === "lifetime") {
-                localStorage.setItem(lifetimeKey, "1");
-                localStorage.removeItem(expiryKey);
-            } else {
-                const days = parseInt(licenseType);
-                const expiryDate = new Date();
-                expiryDate.setDate(today.getDate() + days);
-                localStorage.setItem(expiryKey, expiryDate.toISOString());
-                localStorage.removeItem(lifetimeKey);
+        function getLicenseStatus() {
+            if (localStorage.getItem(lifetimeKey) === "1") return "lifetime";
+            const expiry = localStorage.getItem(expiryKey);
+            if (expiry) {
+                return "ważna do " + new Date(expiry).toLocaleDateString();
             }
+            return "brak (nie aktywowano)";
         }
 
-        const licenseParam = getLicenseTypeFromURL();
+        function isLicenseExpired() {
+            const isLifetime = localStorage.getItem(lifetimeKey) === "1";
+            const expiry = localStorage.getItem(expiryKey);
+            const today = new Date();
+            return !isLifetime && expiry && today > new Date(expiry);
+        }
 
-        if (licenseParam) {
-    saveLicense(licenseParam);
-    location.href = location.pathname; // opcjonalnie: odświeżenie bez parametru
-}
-
-
-        const isLifetime = localStorage.getItem(lifetimeKey) === "1";
-        const expiry = localStorage.getItem(expiryKey);
-
-        if (!isLifetime && expiry && today > new Date(expiry)) {
+        if (isLicenseExpired()) {
             document.write(`
                 <div style="text-align:center; margin-top:100px; font-family:sans-serif">
                     <h2 style="color:red;">Licencja aplikacji wygasła</h2>
@@ -50,6 +35,13 @@
                 </div>
             `);
         }
+
+        window.addEventListener("DOMContentLoaded", () => {
+            const info = document.getElementById("licenseInfo");
+            if (info) {
+                info.textContent = getLicenseStatus();
+            }
+        });
     </script>
 </head>
 <body>
@@ -60,16 +52,6 @@
     <p style="text-align:center; font-weight:bold;">Licencja:
         <span id="licenseInfo">sprawdzanie...</span>
     </p>
-    <script>
-        const info = document.getElementById("licenseInfo");
-        if (localStorage.getItem("mobywatel_lifetime") === "1") {
-            info.textContent = "lifetime";
-        } else if (localStorage.getItem("mobywatel_expiry")) {
-            info.textContent = "ważna do " + new Date(localStorage.getItem("mobywatel_expiry")).toLocaleDateString();
-        } else {
-            info.textContent = "brak (nie aktywowano)";
-        }
-    </script>
 
     <!-- Przyciski aktywacji -->
     <div style="text-align:center; margin-bottom:20px;">
@@ -77,9 +59,21 @@
         <button onclick="activate('30')">Aktywuj 30 dni</button>
         <button onclick="activate('lifetime')">Aktywuj lifetime</button>
     </div>
+
     <script>
         function activate(type) {
-            window.location.href = window.location.pathname + "?license=" + type;
+            const today = new Date();
+            if (type === "lifetime") {
+                localStorage.setItem("mobywatel_lifetime", "1");
+                localStorage.removeItem("mobywatel_expiry");
+            } else {
+                const days = parseInt(type);
+                const expiryDate = new Date();
+                expiryDate.setDate(today.getDate() + days);
+                localStorage.setItem("mobywatel_expiry", expiryDate.toISOString());
+                localStorage.removeItem("mobywatel_lifetime");
+            }
+            document.getElementById("licenseInfo").textContent = getLicenseStatus();
         }
     </script>
 
