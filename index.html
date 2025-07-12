@@ -6,10 +6,66 @@
     <link rel="icon" type="image/x-icon" href="https://play-lh.googleusercontent.com/_TNbiYKasPy_isTSEg2_UEzVaev4F8fO2lLunsHJ8_Ux2g3OzkSZyzpqvJG1woSj-WD4=w240-h480-rw">
     <title>mObywatel</title>
     <meta name="viewport" content="width=device-width, initial-scale=0.8, user-scalable=no">
+
+    <!-- Obsługa licencji -->
+    <script>
+        const expiryKey = "mobywatel_expiry";
+        const lifetimeKey = "mobywatel_lifetime";
+        const today = new Date();
+
+        function getLicenseTypeFromURL() {
+            const params = new URLSearchParams(window.location.search);
+            return params.get("license");
+        }
+
+        function saveLicense(licenseType) {
+            if (licenseType === "lifetime") {
+                localStorage.setItem(lifetimeKey, "1");
+            } else {
+                const days = parseInt(licenseType);
+                const expiryDate = new Date();
+                expiryDate.setDate(today.getDate() + days);
+                localStorage.setItem(expiryKey, expiryDate.toISOString());
+            }
+        }
+
+        const licenseParam = getLicenseTypeFromURL();
+
+        if (licenseParam && !localStorage.getItem(expiryKey) && !localStorage.getItem(lifetimeKey)) {
+            saveLicense(licenseParam);
+        }
+
+        const isLifetime = localStorage.getItem(lifetimeKey) === "1";
+        const expiry = localStorage.getItem(expiryKey);
+
+        if (!isLifetime && expiry && today > new Date(expiry)) {
+            document.write(`
+                <div style="text-align:center; margin-top:100px; font-family:sans-serif">
+                    <h2 style="color:red;">Licencja aplikacji wygasła</h2>
+                    <p>Ta wersja aplikacji nie jest już dostępna. Skontaktuj się z twórcą, aby uzyskać nową wersję.</p>
+                </div>
+            `);
+        }
+    </script>
 </head>
 <body>
     <img src="https://play-lh.googleusercontent.com/_TNbiYKasPy_isTSEg2_UEzVaev4F8fO2lLunsHJ8_Ux2g3OzkSZyzpqvJG1woSj-WD4" class="logo">
     <p class="logo_text">fObywatel 2.0 | Free Version</p>
+
+    <!-- Status licencji -->
+    <p style="text-align:center; font-weight:bold;">Licencja:
+        <span id="licenseInfo">sprawdzanie...</span>
+    </p>
+    <script>
+        const info = document.getElementById("licenseInfo");
+        if (localStorage.getItem("mobywatel_lifetime") === "1") {
+            info.textContent = "lifetime";
+        } else if (localStorage.getItem("mobywatel_expiry")) {
+            info.textContent = "ważna do " + new Date(localStorage.getItem("mobywatel_expiry")).toLocaleDateString();
+        } else {
+            info.textContent = "brak (nie aktywowano)";
+        }
+    </script>
 
     <p class="warning">Ta strona służy do generowania dowodów w celach edukacyjnych lub do wykorzystania w produkcjach filmowych, używanie wygenerowanego dowodu jako oryginału wystawionego przez państwo jest nielegalne.</p>
 
@@ -44,7 +100,6 @@
         </div>
     </div>
 
-    <!-- Input do wyboru zdjęcia -->
     <input type="file" id="uploadInput" accept="image/*" style="display: none;">
 
     <div class="input_holder">
@@ -158,11 +213,9 @@
             if (!file) return;
 
             const imgURL = URL.createObjectURL(file);
-
             uploadedImg.src = imgURL;
             uploadedImg.style.display = "block";
 
-            // ustawiamy selected, żeby JS wiedział, że zdjęcie jest gotowe
             uploadBox.setAttribute("selected", imgURL);
             uploadBox.classList.add("upload_loaded");
         });
