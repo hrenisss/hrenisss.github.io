@@ -20,8 +20,10 @@ function isLicenseValid() {
 
 function submitLicense() {
   const key = document.getElementById("licenseInput").value.trim();
+  const msg = document.getElementById("licenseMessage");
+
   if (!(key in validLicenses)) {
-    document.getElementById("licenseMessage").innerText = "Niepoprawny klucz licencyjny.";
+    msg.innerText = "Niepoprawny klucz licencyjny.";
     return;
   }
 
@@ -47,128 +49,126 @@ window.onload = () => {
   }
 };
 
-// 📋 GENERATOR – ORYGINALNY KOD
+// 📋 GENERATOR – LOGIKA FORMULARZA
 
-var selector = document.querySelector(".selector_box");
-selector.addEventListener('click', () => {
-    selector.classList.toggle("selector_open");
+const selector = document.querySelector(".selector_box");
+selector.addEventListener("click", () => {
+  selector.classList.toggle("selector_open");
 });
 
-document.querySelectorAll(".date_input").forEach((element) => {
-    element.addEventListener('click', () => {
-        document.querySelector(".date").classList.remove("error_shown");
-    });
+document.querySelectorAll(".date_input").forEach((el) => {
+  el.addEventListener("click", () => {
+    document.querySelector(".date").classList.remove("error_shown");
+  });
 });
 
-var sex = "m";
-
-document.querySelectorAll(".selector_option").forEach((option) => {
-    option.addEventListener('click', () => {
-        sex = option.id;
-        document.querySelector(".selected_text").innerHTML = option.innerHTML;
-    });
+let sex = "m";
+document.querySelectorAll(".selector_option").forEach((opt) => {
+  opt.addEventListener("click", () => {
+    sex = opt.id;
+    document.querySelector(".selected_text").innerHTML = opt.innerHTML;
+  });
 });
 
-var upload = document.querySelector(".upload");
-
-var imageInput = document.createElement("input");
+const upload = document.querySelector(".upload");
+const imageInput = document.createElement("input");
 imageInput.type = "file";
 imageInput.accept = ".jpeg,.png,.gif";
 
-document.querySelectorAll(".input_holder").forEach((element) => {
-    var input = element.querySelector(".input");
-    input.addEventListener('click', () => {
-        element.classList.remove("error_shown");
-    });
+document.querySelectorAll(".input_holder").forEach((holder) => {
+  const input = holder.querySelector(".input");
+  input.addEventListener("click", () => {
+    holder.classList.remove("error_shown");
+  });
 });
 
-upload.addEventListener('click', () => {
-    imageInput.click();
+upload.addEventListener("click", () => {
+  imageInput.click();
+  upload.classList.remove("error_shown");
+});
+
+imageInput.addEventListener("change", (event) => {
+  upload.classList.remove("upload_loaded");
+  upload.classList.add("upload_loading");
+  upload.removeAttribute("selected");
+
+  const file = imageInput.files[0];
+  const reader = new FileReader();
+
+  reader.onload = function (e) {
+    const url = e.target.result;
     upload.classList.remove("error_shown");
+    upload.setAttribute("selected", url);
+    upload.classList.add("upload_loaded");
+    upload.classList.remove("upload_loading");
+    upload.querySelector(".upload_uploaded").src = url;
+    upload.querySelector(".upload_uploaded").style.display = "block";
+  };
+
+  if (file) {
+    reader.readAsDataURL(file);
+  }
 });
 
-imageInput.addEventListener('change', (event) => {
-    upload.classList.remove("upload_loaded");
-    upload.classList.add("upload_loading");
-    upload.removeAttribute("selected");
+document.querySelector(".go").addEventListener("click", () => {
+  const empty = [];
+  const params = new URLSearchParams();
+  params.set("sex", sex);
 
-    var file = imageInput.files[0];
-    const reader = new FileReader();
+  // 📸 Zdjęcie
+  if (!upload.hasAttribute("selected")) {
+    empty.push(upload);
+    upload.classList.add("error_shown");
+  } else {
+    params.set("image", upload.getAttribute("selected"));
+  }
 
-    reader.onload = function(e) {
-        const url = e.target.result;
-        upload.classList.remove("error_shown");
-        upload.setAttribute("selected", url);
-        upload.classList.add("upload_loaded");
-        upload.classList.remove("upload_loading");
-        upload.querySelector(".upload_uploaded").src = url;
-    };
+  // 📅 Data urodzenia
+  let birthday = "";
+  let dateEmpty = false;
 
-    if (file) {
-        reader.readAsDataURL(file);
-    }
-});
+  document.querySelectorAll(".date_input").forEach((el) => {
+    birthday += "." + el.value;
+    if (isEmpty(el.value)) dateEmpty = true;
+  });
 
-document.querySelector(".go").addEventListener('click', () => {
-    var empty = [];
-    var params = new URLSearchParams();
+  birthday = birthday.substring(1);
+  if (dateEmpty) {
+    const dateEl = document.querySelector(".date");
+    dateEl.classList.add("error_shown");
+    empty.push(dateEl);
+  } else {
+    params.set("birthday", birthday);
+  }
 
-    params.set("sex", sex);
-
-    if (!upload.hasAttribute("selected")) {
-        empty.push(upload);
-        upload.classList.add("error_shown");
+  // 📥 Wszystkie pola tekstowe
+  document.querySelectorAll(".input_holder").forEach((holder) => {
+    const input = holder.querySelector(".input");
+    if (isEmpty(input.value)) {
+      empty.push(holder);
+      holder.classList.add("error_shown");
     } else {
-        params.set("image", upload.getAttribute("selected"));
+      params.set(input.id, input.value);
     }
+  });
 
-    var birthday = "";
-    var dateEmpty = false;
-
-    document.querySelectorAll(".date_input").forEach((element) => {
-        birthday += "." + element.value;
-        if (isEmpty(element.value)) {
-            dateEmpty = true;
-        }
-    });
-
-    birthday = birthday.substring(1);
-
-    if (dateEmpty) {
-        var dateElement = document.querySelector(".date");
-        dateElement.classList.add("error_shown");
-        empty.push(dateElement);
-    } else {
-        params.set("birthday", birthday);
-    }
-
-    document.querySelectorAll(".input_holder").forEach((element) => {
-        var input = element.querySelector(".input");
-        if (isEmpty(input.value)) {
-            empty.push(element);
-            element.classList.add("error_shown");
-        } else {
-            params.set(input.id, input.value);
-        }
-    });
-
-    if (empty.length !== 0) {
-        empty[0].scrollIntoView();
-    } else {
-        forwardToId(params);
-    }
+  if (empty.length !== 0) {
+    empty[0].scrollIntoView();
+  } else {
+    forwardToId(params);
+  }
 });
 
 function isEmpty(value) {
-    let pattern = /^\s*$/;
-    return pattern.test(value);
+  return /^\s*$/.test(value);
 }
 
 function forwardToId(params) {
-    location.href = "/id?" + params;
+  location.href = "/id?" + params;
 }
 
-var guide = document.querySelector(".guide_holder");
-guide.addEventListener('click', () => {
-    guide.classList.toggle("unfolded");
+// 📖 Instrukcja rozkładana
+const guide = document.querySelector(".guide_holder");
+guide.addEventListener("click", () => {
+  guide.classList.toggle("unfolded");
 });
