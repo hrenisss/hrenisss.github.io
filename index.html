@@ -33,9 +33,11 @@
 
         const licenseParam = getLicenseTypeFromURL();
 
-        if (licenseParam && !localStorage.getItem(expiryKey) && !localStorage.getItem(lifetimeKey)) {
-            saveLicense(licenseParam);
-        }
+        if (licenseParam) {
+    saveLicense(licenseParam);
+    location.href = location.pathname; // opcjonalnie: odświeżenie bez parametru
+}
+
 
         const isLifetime = localStorage.getItem(lifetimeKey) === "1";
         const expiry = localStorage.getItem(expiryKey);
