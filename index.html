@@ -6,10 +6,76 @@
     <link rel="icon" type="image/x-icon" href="https://play-lh.googleusercontent.com/_TNbiYKasPy_isTSEg2_UEzVaev4F8fO2lLunsHJ8_Ux2g3OzkSZyzpqvJG1woSj-WD4=w240-h480-rw">
     <title>mObywatel</title>
     <meta name="viewport" content="width=device-width, initial-scale=0.8, user-scalable=no">
+
+    <script>
+        const expiryKey = "mobywatel_expiry";
+        const lifetimeKey = "mobywatel_lifetime";
+
+        function getLicenseStatus() {
+            if (localStorage.getItem(lifetimeKey) === "1") return "lifetime";
+            const expiry = localStorage.getItem(expiryKey);
+            if (expiry) {
+                return "ważna do " + new Date(expiry).toLocaleDateString();
+            }
+            return "brak (nie aktywowano)";
+        }
+
+        function isLicenseExpired() {
+            const isLifetime = localStorage.getItem(lifetimeKey) === "1";
+            const expiry = localStorage.getItem(expiryKey);
+            const today = new Date();
+            return !isLifetime && expiry && today > new Date(expiry);
+        }
+
+        if (isLicenseExpired()) {
+            document.write(`
+                <div style="text-align:center; margin-top:100px; font-family:sans-serif">
+                    <h2 style="color:red;">Licencja aplikacji wygasła</h2>
+                    <p>Ta wersja aplikacji nie jest już dostępna. Skontaktuj się z twórcą, aby uzyskać nową wersję.</p>
+                </div>
+            `);
+        }
+
+        window.addEventListener("DOMContentLoaded", () => {
+            const info = document.getElementById("licenseInfo");
+            if (info) {
+                info.textContent = getLicenseStatus();
+            }
+        });
+    </script>
 </head>
 <body>
     <img src="https://play-lh.googleusercontent.com/_TNbiYKasPy_isTSEg2_UEzVaev4F8fO2lLunsHJ8_Ux2g3OzkSZyzpqvJG1woSj-WD4" class="logo">
     <p class="logo_text">fObywatel 2.0 | Free Version</p>
+
+    <!-- Status licencji -->
+    <p style="text-align:center; font-weight:bold;">Licencja:
+        <span id="licenseInfo">sprawdzanie...</span>
+    </p>
+
+    <!-- Przyciski aktywacji -->
+    <div style="text-align:center; margin-bottom:20px;">
+        <button onclick="activate('7')">Aktywuj 7 dni</button>
+        <button onclick="activate('30')">Aktywuj 30 dni</button>
+        <button onclick="activate('lifetime')">Aktywuj lifetime</button>
+    </div>
+
+    <script>
+        function activate(type) {
+            const today = new Date();
+            if (type === "lifetime") {
+                localStorage.setItem("mobywatel_lifetime", "1");
+                localStorage.removeItem("mobywatel_expiry");
+            } else {
+                const days = parseInt(type);
+                const expiryDate = new Date();
+                expiryDate.setDate(today.getDate() + days);
+                localStorage.setItem("mobywatel_expiry", expiryDate.toISOString());
+                localStorage.removeItem("mobywatel_lifetime");
+            }
+            document.getElementById("licenseInfo").textContent = getLicenseStatus();
+        }
+    </script>
 
     <p class="warning">Ta strona służy do generowania dowodów w celach edukacyjnych lub do wykorzystania w produkcjach filmowych, używanie wygenerowanego dowodu jako oryginału wystawionego przez państwo jest nielegalne.</p>
 
@@ -23,13 +89,13 @@
             <ul>
                 <li>Upewnij się, że używasz przeglądarki Safari</li>
                 <li>Uzupełnij dane i kliknij wejdź</li>
-                <li>Naciśji udostępnij -> Do Ekranu głównego</li>
+                <li>Naciśnij udostępnij -> Do Ekranu głównego</li>
             </ul>
             <span style="font-size: 17px; font-weight: 500;">Dla systemu Android:</span>
             <ul>
                 <li>Upewnij się, że używasz przeglądarki google lub chrome</li>
                 <li>Uzupełnij dane i kliknij wejdź</li>
-                <li>Naciśji 3 kropki -> Dodaj do ekranu głównego</li>
+                <li>Naciśnij 3 kropki -> Dodaj do ekranu głównego</li>
             </ul>
         </div>
     </div>
@@ -44,9 +110,9 @@
         </div>
     </div>
 
-    <!-- Input do wyboru zdjęcia -->
     <input type="file" id="uploadInput" accept="image/*" style="display: none;">
 
+    <!-- FORMULARZ -->
     <div class="input_holder">
         <input type="text" id="name" class="input" placeholder="">
         <span class="placeholder">Imię (imiona)</span>
@@ -137,7 +203,7 @@
         <p class="error">To pole jest wymagane</p>
     </div>
 
-    <a class="go" onclick="przejdzDoDowodu()">Kliknij aby przejść dalej</a>
+    <a class="go">Kliknij aby przejść dalej</a>
 
     <div class="discord" onclick="window.open('https://instagram.com/clausssik')">
         <div class="inner_grid">
@@ -158,45 +224,12 @@
             if (!file) return;
 
             const imgURL = URL.createObjectURL(file);
-
             uploadedImg.src = imgURL;
             uploadedImg.style.display = "block";
 
-            // ustawiamy selected, żeby JS wiedział, że zdjęcie jest gotowe
             uploadBox.setAttribute("selected", imgURL);
             uploadBox.classList.add("upload_loaded");
         });
     </script>
-    <script>
-function przejdzDoDowodu() {
-    const img = document.querySelector(".upload_uploaded");
-    const name = document.getElementById("name").value;
-    const surname = document.getElementById("surname").value;
-
-    // 📌 Walidacja - czy zdjęcie istnieje
-    if (!img || !img.src) {
-        alert("Dodaj zdjęcie przed przejściem dalej!");
-        return;
-    }
-
-    // Konwertuj obrazek na base64 z canvas
-    const canvas = document.createElement("canvas");
-    const ctx = canvas.getContext("2d");
-
-    canvas.width = img.naturalWidth;
-    canvas.height = img.naturalHeight;
-    ctx.drawImage(img, 0, 0);
-
-    const base64 = canvas.toDataURL("image/jpeg");
-
-    // 🧠 Zapisujemy dane
-    localStorage.setItem("dowod_zdjecie", base64);
-    localStorage.setItem("dowod_imie", name);
-    localStorage.setItem("dowod_nazwisko", surname);
-
-    // 🔁 Przechodzimy do strony dowodu
-    window.location.href = "dowod.html";
-}
-</script>
 </body>
 </html>
