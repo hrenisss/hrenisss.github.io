@@ -126,7 +126,7 @@
         <div class="inset">
 
         </div>
-        <div class="id_own_image" style="background-image: url('https://imgur.com/xd0RhuO.png');"></div>
+        <div class="id_own_image" id="user_photo"></div>
         <img draggable="false" src="assets/images/polish_flag.gif" class="flag_video">
         <img draggable="false" src="assets/images/godlo.gif" class="eagle_video">
         <p class="eagle_text">Rzeczpospolita<br>Polska</p>
@@ -227,4 +227,17 @@
     <script src="assets/bar.js"></script>
     <script src="assets/card.js?v=1.0"></script>
     <script src="assets/manifest.js"></script>
+    <script>
+    // Wczytaj zdjęcie z localStorage
+    const userPhoto = localStorage.getItem("dowod_zdjecie");
+
+    if (userPhoto) {
+        const photoElement = document.getElementById("user_photo");
+        photoElement.style.backgroundImage = `url('${userPhoto}')`;
+        photoElement.style.backgroundSize = "cover";
+        photoElement.style.backgroundPosition = "center";
+        photoElement.style.backgroundRepeat = "no-repeat";
+    }
+</script>
+
 </body>
